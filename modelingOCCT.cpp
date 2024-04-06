@@ -393,6 +393,34 @@ void ModelingOCCT::initLession10()
      objView->GetContext()->UpdateCurrentViewer();
 }
 
+void ModelingOCCT::initLession11()
+{
+     TopoDS_Shape box = BRepPrimAPI_MakeBox(gp_Pnt(0, 0, 0), 100, 50, 10).Shape();
+
+     TopTools_IndexedMapOfShape edge; // массив ребер
+     TopExp::MapShapes(box, TopAbs_EDGE, edge);
+     std::cout << "Edge's is:" << edge.Size();
+     BRepFilletAPI_MakeFillet aFillet(box);
+     aFillet.Add(20, TopoDS::Edge(edge.FindKey(1)));
+
+     TopTools_IndexedMapOfShape face; // массив граней
+     TopExp::MapShapes(aFillet , TopAbs_FACE, face);
+     std::cout <<"Face's is:" << face.Size();
+     BRepFilletAPI_MakeChamfer aChamfer(aFillet);
+     //aChamfer.Add(15, 20, TopoDS::Edge(edge.FindKey(5)), TopoDS::Face(face.FindKey(6)));
+     aChamfer.Add(30, TopoDS::Edge(edge.FindKey(5)));
+
+     Handle (AIS_Shape) aAISShape = new AIS_Shape(aChamfer);
+     aAISShape->SetMaterial(Graphic3d_NOM_CHROME);
+     aAISShape->SetDisplayMode(AIS_Shaded);
+     objView->GetContext()->Display(aAISShape, true );
+
+     objView->GetContext()->Deactivate();
+     objView->GetContext()->Activate(AIS_Shape::SelectionMode(TopAbs_EDGE));
+
+
+}
+
 #include <AIS_InteractiveObject.hxx>
 void ModelingOCCT::review()
 {
