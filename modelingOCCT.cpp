@@ -356,10 +356,14 @@ void ModelingOCCT::initLession9()
 #include <BRepAlgoAPI_Common.hxx>
 #include <AIS_ViewCube.hxx>
 #include <Prs3d_DatumAspect.hxx>
+#include <Message_ProgressIndicator.hxx>
+
 
 
 void ModelingOCCT::initLession10()
 {
+
+
 
     TopoDS_Shape box_1 = BRepPrimAPI_MakeBox(gp_Pnt(0, 0, 0), 100, 75, 12).Shape();
     TopoDS_Shape box_2 = BRepPrimAPI_MakeBox(gp_Pnt(2.5, 2.5, 2.5), 95, 70, 9.5).Shape();
@@ -390,36 +394,57 @@ void ModelingOCCT::initLession10()
      // objView->GetContext()->Activate(AIS_Shape::SelectionMode(TopAbs_EDGE));
      // objView->GetContext()->HighlightStyle()->SetColor(Quantity_NameOfColor::Quantity_NOC_WHITE);
      // objView->GetContext()->SelectionStyle()->SetColor(Quantity_NameOfColor::Quantity_NOC_RED);
+
+     objView->GetContext()->SetSelected(aAISShape,true);
      objView->GetContext()->UpdateCurrentViewer();
+     //ExportStep("CoverCone.step");
+     ExportVrml("CoverCone.vrml");
 }
+#include <STEPControl_StepModelType.hxx>
+#include <STEPControl_Writer.hxx>
 
-void ModelingOCCT::initLession11()
+bool ModelingOCCT::ExportStep (const TCollection_AsciiString& theFileName)
 {
-     TopoDS_Shape box = BRepPrimAPI_MakeBox(gp_Pnt(0, 0, 0), 100, 50, 10).Shape();
+     STEPControl_StepModelType aType = STEPControl_AsIs;
+     STEPControl_Writer        aWriter;
+     for (objView->GetContext()->InitSelected(); objView->GetContext()->MoreSelected(); objView->GetContext()->NextSelected())
+     {
+        Handle(AIS_Shape) anIS = Handle(AIS_Shape)::DownCast (objView->GetContext()->SelectedInteractive());
+        if (anIS.IsNull())
+        {
+            return false;
+        }
 
-     TopTools_IndexedMapOfShape edge; // массив ребер
-     TopExp::MapShapes(box, TopAbs_EDGE, edge);
-     std::cout << "Edge's is:" << edge.Size();
-     BRepFilletAPI_MakeFillet aFillet(box);
-     aFillet.Add(20, TopoDS::Edge(edge.FindKey(1)));
-
-     TopTools_IndexedMapOfShape face; // массив граней
-     TopExp::MapShapes(aFillet , TopAbs_FACE, face);
-     std::cout <<"Face's is:" << face.Size();
-     BRepFilletAPI_MakeChamfer aChamfer(aFillet);
-     //aChamfer.Add(15, 20, TopoDS::Edge(edge.FindKey(5)), TopoDS::Face(face.FindKey(6)));
-     aChamfer.Add(30, TopoDS::Edge(edge.FindKey(5)));
-
-     Handle (AIS_Shape) aAISShape = new AIS_Shape(aChamfer);
-     aAISShape->SetMaterial(Graphic3d_NOM_CHROME);
-     aAISShape->SetDisplayMode(AIS_Shaded);
-     objView->GetContext()->Display(aAISShape, true );
-
-     objView->GetContext()->Deactivate();
-     objView->GetContext()->Activate(AIS_Shape::SelectionMode(TopAbs_EDGE));
-
-
+        TopoDS_Shape aShape = anIS->Shape();
+        if (aWriter.Transfer (aShape, aType) != IFSelect_RetDone)
+        {
+            return false;
+        }
+     }
+     return aWriter.Write (theFileName.ToCString()) == IFSelect_RetDone;
 }
+
+#include <VrmlAPI_Writer.hxx>
+bool ModelingOCCT::ExportVrml (const TCollection_AsciiString& theFileName)
+{
+     TopoDS_Compound aRes;
+     BRep_Builder    aBuilder;
+     aBuilder.MakeCompound (aRes);
+     for (objView->GetContext()->InitSelected(); objView->GetContext()->MoreSelected(); objView->GetContext()->NextSelected())
+     {
+        Handle(AIS_Shape) anIS = Handle(AIS_Shape)::DownCast (objView->GetContext()->SelectedInteractive());
+        if (anIS.IsNull())
+        {
+            return false;
+        }
+        aBuilder.Add (aRes, anIS->Shape());
+     }
+
+     VrmlAPI_Writer aWriter;
+     aWriter.Write (aRes, theFileName.ToCString());
+     return true;
+}
+
 
 #include <AIS_InteractiveObject.hxx>
 void ModelingOCCT::review()

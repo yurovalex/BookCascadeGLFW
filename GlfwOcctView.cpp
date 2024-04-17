@@ -101,7 +101,7 @@ void GlfwOcctView::run()
   //myOcct->HelixExample();
 //myOcct->initLession7();
 
-  myOcct->initLession11();
+  myOcct->initLession10();
   //myOcct->review();
 
 

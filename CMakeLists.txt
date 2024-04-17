@@ -43,6 +43,7 @@ SET(OpenCASCADE_LIBS
   TKGeomBase TKGeomAlgo TKG3d TKG2d TKTopAlgo
   TKPrim TKMath TKTopAlgo TKBin TKBool TKBO TKFillet
   TKOffset TKTObj TKFeat TKMesh TKOffset TKXSBase
+  TKDESTEP TKDEIGES TKDESTL TKDEVRML TKLCAF
 )
 
 # glfw

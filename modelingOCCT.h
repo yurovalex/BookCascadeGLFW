@@ -11,22 +11,28 @@ public:
     void initDemoScene();
     void initExample1();
     void initExample2();
+
     void initExample4();
     void initLession5();
+
     void initLession6();
+
     void SearchingGP_Points();
+
     void HelixExample();
+
     void initLession7();
     void initLession8();
     void initLession9();
-    void initLession10();
-    void initLession11();
+     void initLession10();
 
     void review();
 
     //Using gp_Point and Cartesian
     void Lession2();
 
+    bool ExportStep(const TCollection_AsciiString &theFileName);
+    bool ExportVrml(const TCollection_AsciiString &theFileName);
 private:
 
 
