@@ -421,9 +421,10 @@ void ModelingOCCT::initLession10()
      // objView->GetContext()->SelectionStyle()->SetColor(Quantity_NameOfColor::Quantity_NOC_RED);
 
      objView->GetContext()->SetSelected(aAISShape,true);
+     ExportStep("CoverCone.step");
+     //ExportVrml("CoverCone.vrml");
+     objView->GetContext()->SetSelected(aAISShape,false);
      objView->GetContext()->UpdateCurrentViewer();
-     //ExportStep("CoverCone.step");
-     ExportVrml("CoverCone.vrml");
 }
 #include <STEPControl_StepModelType.hxx>
 #include <STEPControl_Writer.hxx>
