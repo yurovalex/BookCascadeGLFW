@@ -32,7 +32,7 @@ source_group ("Sources" FILES
 
 # Open CASCADE Technology
 # Set the path to the 3rd party library
-set(THIRD_PARTY_PATH /run/media/alexey/LinuxData/Cascade/occt_linux_build780)
+set(THIRD_PARTY_PATH /run/media/alexey/LinuxData/Cascade/occt_build780)
 
 
 include_directories(${THIRD_PARTY_PATH}/inc)

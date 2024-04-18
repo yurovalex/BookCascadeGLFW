@@ -93,6 +93,40 @@ void ModelingOCCT::initExample2()
     objView->GetContext()->Display (aAISShape, AIS_Shaded, 0, true);
 }
 
+#include <iostream>
+#include <BRepBuilderAPI_MakeVertex.hxx>
+#include <TopoDS_Vertex.hxx>
+#include <Geom_CartesianPoint.hxx>
+#include <AIS_Point.hxx>
+#include <AIS_Line.hxx>
+#include <Graphic3d_AspectLine3d.hxx>
+
+void ModelingOCCT::Lession2()
+{
+    gp_Pnt pnt1(10, 0, 0);
+    gp_Pnt pnt2 {100, 1, 1};
+    std::cout << pnt2.Distance(pnt1) <<std::endl;
+
+    Handle(Prs3d_Drawer) aDrawer = objView->GetContext()->HighlightStyle(Prs3d_TypeOfHighlight_Selected);
+    aDrawer->SetColor(Quantity_NOC_RED4);
+    aDrawer->SetIsoOnPlane(true);
+
+    TopoDS_Vertex vertex2 = BRepBuilderAPI_MakeVertex(pnt2);
+    Handle(AIS_Shape) aisPoint2 = new AIS_Shape(vertex2);
+    objView->GetContext()->Display (aisPoint2, AIS_Shaded, 0, true);
+
+    TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(pnt1,pnt2);
+    Handle(AIS_Shape) theLineToDisplay = new AIS_Shape(edge);
+
+    Quantity_ColorRGBA myCol(0,1,0,1);
+    theLineToDisplay->SetColor(myCol.GetRGB());
+    //??????
+    theLineToDisplay->SetWidth(5.);
+
+    objView->GetContext()->Display (theLineToDisplay, AIS_Shaded, 0, true);
+
+}
+
 #include <gp_Elips2d.hxx>
 #include <GCE2d_MakeArcOfEllipse.hxx>
 #include <BRepBuilderAPI_MakeEdge2d.hxx>
@@ -165,7 +199,6 @@ void ModelingOCCT::initLession6()
     //Build surface 3D -change z koordinate
     int arraySize = 8;
     TColgp_Array2OfPnt myStucture(0,arraySize,0,arraySize);
-
     std::random_device rd;
     std::mt19937 mt(rd());
     std::uniform_real_distribution<double> z(-3.0, 3.0);
@@ -179,8 +212,6 @@ void ModelingOCCT::initLession6()
             myStucture.SetValue(j,i,gp_Pnt(i,j,z(mt)));
         }
     }
-
-
     Handle (Geom_Surface) myGSurface = new Geom_BezierSurface(myStucture);
     TopoDS_Face myFace = BRepBuilderAPI_MakeFace(myGSurface,0.01);
     Handle(AIS_Shape) aisFace=new AIS_Shape(myFace);
@@ -336,16 +367,15 @@ void ModelingOCCT::initLession8()
 }
 
 
+
+
 #include <BRepPrimAPI_MakeWedge.hxx>
 void ModelingOCCT::initLession9()
 {
     gp_Ax2 anAxis;
     anAxis.SetLocation (gp_Pnt (0.0, 0.0, 0.0));
     Handle(AIS_Shape) m_aWedge = new AIS_Shape (BRepPrimAPI_MakeWedge(anAxis,15,15,30,5).Shape());
-
     objView->GetContext()->Display (m_aWedge, AIS_Shaded, 0, false);
-
-
     Handle(AIS_Shape) m_aBox = new AIS_Shape (BRepPrimAPI_MakeBox(gp_Pnt(150, 0, 0), 100, 50, 10).Shape());
     objView->GetContext()->Display (m_aBox, AIS_Shaded, 0, false);
 }
@@ -358,13 +388,8 @@ void ModelingOCCT::initLession9()
 #include <Prs3d_DatumAspect.hxx>
 #include <Message_ProgressIndicator.hxx>
 
-
-
 void ModelingOCCT::initLession10()
 {
-
-
-
     TopoDS_Shape box_1 = BRepPrimAPI_MakeBox(gp_Pnt(0, 0, 0), 100, 75, 12).Shape();
     TopoDS_Shape box_2 = BRepPrimAPI_MakeBox(gp_Pnt(2.5, 2.5, 2.5), 95, 70, 9.5).Shape();
     TopoDS_Shape ShapeCut_1 = BRepAlgoAPI_Cut(box_1, box_2);
@@ -446,6 +471,81 @@ bool ModelingOCCT::ExportVrml (const TCollection_AsciiString& theFileName)
 }
 
 
+void ModelingOCCT::initLession11() noexcept
+{
+     TopoDS_Shape box = BRepPrimAPI_MakeBox(gp_Pnt(0, 0, 0), 100, 50, 10).Shape();
+
+     TopTools_IndexedMapOfShape edge; // массив ребер
+     TopExp::MapShapes(box, TopAbs_EDGE, edge);
+     std::cout << "Edge's is:"<<edge.Size();
+     BRepFilletAPI_MakeFillet aFillet(box);
+     aFillet.Add(10, TopoDS::Edge(edge.FindKey(1)));
+
+     TopTools_IndexedMapOfShape face; // массив граней
+     TopExp::MapShapes(aFillet , TopAbs_FACE, face);
+     std::cout << "Face's is:"<<face.Size();
+     BRepFilletAPI_MakeChamfer aChamfer(aFillet);
+     //aChamfer.Add(10, 40, TopoDS::Edge(edge.FindKey(5)), TopoDS::Face(face.FindKey(6)));
+     //aChamfer.Add(30, TopoDS::Edge(edge.FindKey(5)));
+
+     aChamfer.AddDA(3, 67* M_PI/180.f,TopoDS::Edge(edge.FindKey(5)), TopoDS::Face(face.FindKey(6)));
+
+     Handle (AIS_Shape) aAISShape = new AIS_Shape(aChamfer);
+     aAISShape->SetMaterial(Graphic3d_NOM_CHROME);
+     aAISShape->SetDisplayMode(AIS_Shaded);
+     objView->GetContext()->Display(aAISShape, true );
+
+}
+
+#include <BRepPrimAPI_MakeRevol.hxx>
+void ModelingOCCT::initLession12()
+{
+     gp_Pnt pnt1(0, 0, 0);
+     gp_Pnt pnt2(0, 5, 0);
+     gp_Pnt pnt3(0, 0, 4);
+
+
+     TopoDS_Edge aEdge1 = BRepBuilderAPI_MakeEdge(pnt1, pnt2);
+     TopoDS_Edge aEdge2 = BRepBuilderAPI_MakeEdge(pnt2, pnt3);
+     TopoDS_Edge aEdge3 = BRepBuilderAPI_MakeEdge(pnt3, pnt1);
+
+
+     BRepBuilderAPI_MakeWire makeW;
+     makeW.Add(aEdge1);
+     makeW.Add(aEdge2);
+     makeW.Add(aEdge3);
+
+     TopoDS_Wire Wc = makeW.Wire();
+
+     TopoDS_Face F = BRepBuilderAPI_MakeFace(Wc,true);
+     gp_Vec move(gp_Dir(0, 0, 1));
+     move *= 10;
+
+     TopoDS_Shape shape = BRepPrimAPI_MakePrism(F, move);
+     Handle (AIS_Shape) aAISShape = new AIS_Shape(shape);
+     aAISShape->SetMaterial(Graphic3d_NOM_CHROME);
+     aAISShape->SetDisplayMode(AIS_Shaded);
+     objView->GetContext()->Display(aAISShape, true );
+
+     //gp_Circ c1 = gp_Circ(gp_Ax2(gp_Pnt(100, 0, 0), gp_Dir(0.,1.,0.)), 10);
+     //TopoDS_Edge Ec1 = BRepBuilderAPI_MakeEdge(c1);
+     //TopoDS_Wire Wc1 = BRepBuilderAPI_MakeWire(Ec1);
+     TopoDS_Face F1 = BRepBuilderAPI_MakeFace(Wc);
+
+     gp_Ax1 ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1));
+
+     TopoDS_Shape shape1 = BRepPrimAPI_MakeRevol(F1, ax1, (2 * M_PI ));
+     Handle (AIS_Shape) aAISShape1 = new AIS_Shape(shape1);
+     aAISShape1->SetMaterial(Graphic3d_NOM_CHROME);
+     aAISShape1->SetDisplayMode(AIS_Shaded);
+     objView->GetContext()->Display(aAISShape1, true );
+}
+
+
+
+
+
+
 #include <AIS_InteractiveObject.hxx>
 void ModelingOCCT::review()
 {
@@ -464,8 +564,6 @@ void ModelingOCCT::review()
         return;
     }
 
-
-
     objView->GetContext()->Deactivate();
     objView->GetContext()->Activate(AIS_Shape::SelectionMode(TopAbs_FACE));
     objView->GetContext()->UpdateCurrentViewer();
@@ -474,37 +572,5 @@ void ModelingOCCT::review()
 
 
 
-#include <iostream>
-#include <BRepBuilderAPI_MakeVertex.hxx>
-#include <TopoDS_Vertex.hxx>
-#include <Geom_CartesianPoint.hxx>
-#include <AIS_Point.hxx>
-#include <AIS_Line.hxx>
-#include <Graphic3d_AspectLine3d.hxx>
 
-void ModelingOCCT::Lession2()
-{
-    gp_Pnt pnt1(10, 0, 0);
-    gp_Pnt pnt2 {100, 1, 1};
-    std::cout << pnt2.Distance(pnt1) <<std::endl;
-
-    Handle(Prs3d_Drawer) aDrawer = objView->GetContext()->HighlightStyle(Prs3d_TypeOfHighlight_Selected);
-    aDrawer->SetColor(Quantity_NOC_RED4);
-    aDrawer->SetIsoOnPlane(true);
-
-    TopoDS_Vertex vertex2 = BRepBuilderAPI_MakeVertex(pnt2);
-    Handle(AIS_Shape) aisPoint2 = new AIS_Shape(vertex2);
-    objView->GetContext()->Display (aisPoint2, AIS_Shaded, 0, true);
-
-    TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(pnt1,pnt2);
-    Handle(AIS_Shape) theLineToDisplay = new AIS_Shape(edge);
-
-    Quantity_ColorRGBA myCol(0,1,0,1);
-    theLineToDisplay->SetColor(myCol.GetRGB());
-    //??????
-    theLineToDisplay->SetWidth(5.);
-
-    objView->GetContext()->Display (theLineToDisplay, AIS_Shaded, 0, true);
-
-}
 

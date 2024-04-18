@@ -33,6 +33,8 @@ public:
 
     bool ExportStep(const TCollection_AsciiString &theFileName);
     bool ExportVrml(const TCollection_AsciiString &theFileName);
+    void initLession12();
+    void initLession11() noexcept;
 private:
 
 
